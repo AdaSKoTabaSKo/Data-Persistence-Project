@@ -7,14 +7,19 @@ using UnityEngine.UI;
 public class MainManager : MonoBehaviour
 {
     public Brick BrickPrefab;
+    public GameObject spawnParent;
     public int LineCount = 6;
     public Rigidbody Ball;
+
+    public Text BestScoreText;
 
     public Text ScoreText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
     private int m_Points;
+
+    public int bestScore;
     
     private bool m_GameOver = false;
 
@@ -22,6 +27,9 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        GameManager.Instance.LoadBestScore();
+        BestScoreText.text = $"Bestscore: " + GameManager.Instance.bestPlayerEver + " : " + GameManager.Instance.bestScoreEver;
+        
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -31,7 +39,7 @@ public class MainManager : MonoBehaviour
             for (int x = 0; x < perLine; ++x)
             {
                 Vector3 position = new Vector3(-1.5f + step * x, 2.5f + i * 0.3f, 0);
-                var brick = Instantiate(BrickPrefab, position, Quaternion.identity);
+                var brick = Instantiate(BrickPrefab, position, Quaternion.identity, spawnParent.transform);
                 brick.PointValue = pointCountArray[i];
                 brick.onDestroyed.AddListener(AddPoint);
             }
@@ -55,6 +63,15 @@ public class MainManager : MonoBehaviour
         }
         else if (m_GameOver)
         {
+            if (m_Points > GameManager.Instance.bestScoreEver)
+            {
+                GameManager.Instance.bestScore = m_Points;
+                
+                BestScoreText.text = $"Bestscore: " + GameManager.Instance.bestPlayerEver + " : " + GameManager.Instance.bestScoreEver;
+                
+                GameManager.Instance.SaveBestScore();
+            }
+
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
